@@ -203,7 +203,7 @@ const App = () => {
 
         {/* Transaction Behavioral Analysis */}
         <div className="analysis-card">
-          <h2>Transaction Behavioral Analysis</h2>
+          <h2>Behavioral Analysis</h2>
           <p>Evaluate the transaction history behavior.</p>
           <label>
             Transaction Behavior:
