@@ -3,15 +3,15 @@ import "./App.css";
 
 const App = () => {
   // States for customer risk analysis
-
   const [selectedOccupation, setSelectedOccupation] = useState("");
   const [kycStatus, setKycStatus] = useState("");
   const [customerRiskScore, setCustomerRiskScore] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState("");
   const [filteredCountries, setFilteredCountries] = useState([]);
   // States for transaction analysis
-  const [transactionVolume, setTransactionVolume] = useState("");
+  const [transactionValue, setTransactionValue] = useState("");
   const [transactionRiskScore, setTransactionRiskScore] = useState(null);
+  const [annualIncomeRange, setAnnualIncomeRange] = useState("");
 
   // States for transaction behavioral analysis
   const [transactionBehavior, setTransactionBehavior] = useState("");
@@ -22,7 +22,7 @@ const App = () => {
 
   // Data for scoring
   const countries = {
-    Afghanistan: 80,
+   Afghanistan: 80,
     Albania: 40,
     Algeria: 50,
     Andorra: 10,
@@ -182,8 +182,8 @@ const App = () => {
     Yemen: 90,
     Zambia: 50,
     Zimbabwe: 60,
+    others: 50,
   };
-
 
   const occupations = {
     "Politically Exposed": 80,
@@ -214,6 +214,13 @@ const App = () => {
     "Very Good Past": 10,
   };
 
+  const incomeRanges = {
+    "Below 2 Lakhs": 100000,
+    "2 Lakhs - 5 Lakhs": 350000,
+    "5 Lakhs - 10 Lakhs": 750000,
+    "Above 10 Lakhs": 1500000,
+  };
+
   const handleCountrySearch = (e) => {
     const query = e.target.value.toLowerCase();
     setSelectedCountry(query);
@@ -226,6 +233,7 @@ const App = () => {
       setFilteredCountries([]);
     }
   };
+
   // Calculate Customer Risk Score
   const calculateCustomerRiskScore = () => {
     const countryScore = countries[selectedCountry] || 0;
@@ -240,11 +248,14 @@ const App = () => {
 
   // Calculate Transaction Risk Score
   const calculateTransactionRiskScore = () => {
-    const transactionVolumeValue = parseFloat(transactionVolume) || 0;
+    const transactionValueNumber = parseFloat(transactionValue) || 0;
+    const incomeMedian = incomeRanges[annualIncomeRange] || 0;
+    const threshold = incomeMedian * 0.33; // 33% of the median income
+
     let score = 0;
 
-    if (transactionVolumeValue < 10000) score = transactionScores.low;
-    else if (transactionVolumeValue <= 50000) score = transactionScores.medium;
+    if (transactionValueNumber <= threshold) score = transactionScores.low;
+    else if (transactionValueNumber <= 2 * threshold) score = transactionScores.medium;
     else score = transactionScores.high;
 
     setTransactionRiskScore(score);
@@ -291,44 +302,30 @@ const App = () => {
         <div className="analysis-card">
           <h2>Customer Risk Analysis</h2>
           <p>Analyze customer risk based on country, occupation, and KYC status.</p>
-          {/* <label>
-            Country:
-            <select
-              value={selectedCountry}
-              onChange={(e) => setSelectedCountry(e.target.value)}
-            >
-              <option value="">Select a Country</option>
-              {Object.keys(countries).map((country) => (
-                <option key={country} value={country}>
-                  {country}
-                </option>
-              ))}
-            </select>
-          </label> */}
           <label>
-          Country:
-          <input
-            type="text"
-            value={selectedCountry}
-            onChange={handleCountrySearch}
-            placeholder="Search country"
-          />
-        </label>
-        {filteredCountries.length > 0 && (
-          <ul className="autocomplete-list">
-            {filteredCountries.map((country) => (
-              <li
-                key={country}
-                onClick={() => {
-                  setSelectedCountry(country);
-                  setFilteredCountries([]);
-                }}
-              >
-                {country}
-              </li>
-            ))}
-          </ul>
-        )}
+            Country:
+            <input
+              type="text"
+              value={selectedCountry}
+              onChange={handleCountrySearch}
+              placeholder="Search country"
+            />
+          </label>
+          {filteredCountries.length > 0 && (
+            <ul className="autocomplete-list">
+              {filteredCountries.map((country) => (
+                <li
+                  key={country}
+                  onClick={() => {
+                    setSelectedCountry(country);
+                    setFilteredCountries([]);
+                  }}
+                >
+                  {country}
+                </li>
+              ))}
+            </ul>
+          )}
           <label>
             Occupation:
             <select
@@ -361,45 +358,58 @@ const App = () => {
             Calculate Customer Risk Score
           </button>
           {customerRiskScore !== null && (
-            <p>
-              <strong>Customer Risk Score:</strong> {customerRiskScore.toFixed(2)}
-            </p>
+            <p>Customer Risk Score: {customerRiskScore.toFixed(2)}</p>
           )}
         </div>
 
-        {/* Transaction Analysis */}
+        {/* Transaction Analysis Section */}
         <div className="analysis-card">
           <h2>Transaction Analysis</h2>
-          <p>Analyze transaction volume and assess risk.</p>
+          <p>
+            Analyze transaction risk based on transaction value and annual income.
+          </p>
           <label>
-            Transaction Volume:
+            Annual Income Range:
+            <select
+              value={annualIncomeRange}
+              onChange={(e) => setAnnualIncomeRange(e.target.value)}
+            >
+              <option value="">Select an Income Range</option>
+              {Object.keys(incomeRanges).map((range) => (
+                <option key={range} value={range}>
+                  {range}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Transaction Value:
             <input
               type="number"
-              value={transactionVolume}
-              onChange={(e) => setTransactionVolume(e.target.value)}
+              value={transactionValue}
+              onChange={(e) => setTransactionValue(e.target.value)}
+              placeholder="Enter transaction value"
             />
           </label>
           <button onClick={calculateTransactionRiskScore}>
             Calculate Transaction Risk Score
           </button>
           {transactionRiskScore !== null && (
-            <p>
-              <strong>Transaction Risk Score:</strong> {transactionRiskScore}
-            </p>
+            <p>Transaction Risk Score: {transactionRiskScore}</p>
           )}
         </div>
 
-        {/* Transaction Behavioral Analysis */}
+        {/* Transaction Behavioral Analysis Section */}
         <div className="analysis-card">
           <h2>Behavioral Analysis</h2>
-          <p>Evaluate the transaction history behavior.</p>
+          <p>Analyze behavioral risk based on transaction patterns.</p>
           <label>
             Transaction Behavior:
             <select
               value={transactionBehavior}
               onChange={(e) => setTransactionBehavior(e.target.value)}
             >
-              <option value="">Select Transaction Behavior</option>
+              <option value="">Select a Behavior</option>
               {Object.keys(behaviorScores).map((behavior) => (
                 <option key={behavior} value={behavior}>
                   {behavior}
@@ -411,32 +421,32 @@ const App = () => {
             Calculate Behavioral Risk Score
           </button>
           {behavioralRiskScore !== null && (
-            <p>
-              <strong>Behavioral Risk Score:</strong> {behavioralRiskScore}
-            </p>
+            <p>Behavioral Risk Score: {behavioralRiskScore}</p>
+          )}
+        </div>
+
+        {/* Aggregate Results Section */}
+        <div className="analysis-card">
+          <h2>X-ID Results</h2>
+          <p>Combine all risk scores to evaluate overall risk level.</p>
+          <button onClick={aggregateResults}>Get X-ID</button>
+          {aggregateScore !== null && (
+            <div>
+              <p>X-ID Score: {aggregateScore.toFixed(2)}</p>  
+              <p>{getQuote(aggregateScore)}</p>
+            </div>
           )}
         </div>
       </div>
-
-      {/* Aggregate Results Section */}
-      <div className="aggregate-container">
-        <h2>Aggregate Results</h2>
-        <button onClick={aggregateResults}>Aggregate Scores</button>
-        {aggregateScore !== null && (
-          <>
-            <p>
-              <strong>Aggregate Risk Score:</strong> {aggregateScore.toFixed(2)}
-            </p>
-            <p>
-              <strong>Message:</strong> {getQuote(aggregateScore)}
-            </p>
-          </>
-        )}
-      </div>
-      <p>This application performs a comprehensive risk analysis by evaluating a customer's risk profile, transaction behavior, and transaction volume. The Customer Risk Analysis assesses factors like the individual's country, occupation, and KYC verification status to calculate a risk score. The Transaction Analysis evaluates the transaction volume against predefined thresholds to determine its risk level. The Transaction Behavioral Analysis examines past transaction patterns, categorizing them as suspicious, normal, or very good, each assigned a corresponding score. Finally, all three analyses are aggregated into a single Aggregate Risk Score, providing a holistic view of the customer's risk level. The application also displays a contextual message or quote based on the aggregate score, offering insights into the user's risk status, such as whether their activity appears clean or if they are under potential surveillance.</p>
     </div>
   );
 };
 
 export default App;
+
+
+
+
+
+
 
