@@ -429,7 +429,7 @@ const App = () => {
         <div className="analysis-card">
           <h2>X-ID Results</h2>
           <p>Combine all risk scores to evaluate overall risk level.</p>
-          <button onClick={aggregateResults}>Get X-ID</button>
+          <button onClick={aggregateResults}>Get X-ID Result</button>
           {aggregateScore !== null && (
             <div>
               <p>X-ID Score: {aggregateScore.toFixed(2)}</p>  
